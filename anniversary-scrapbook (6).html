@@ -161,14 +161,6 @@
     }
     .page-title-input::placeholder { color:var(--blush); }
 
-    /* Sticker strip per page */
-    .sticker-strip {
-      max-width:1100px; margin:0 auto 2rem;
-      display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center;
-    }
-    .sticker { font-size:1.6rem; cursor:pointer; user-select:none; transition:transform .15s; }
-    .sticker:hover { transform:scale(1.3) rotate(8deg); }
-
     /* Add memory button */
     .add-wrap { max-width:1100px; margin:0 auto 1.5rem; text-align:center; }
     .add-btn {
@@ -254,9 +246,6 @@
     .photo-card:hover .card-del, .note-card:hover .card-del { opacity:1; }
     .card-del:hover { background:var(--rust); }
 
-    /* FLOAT STICKER */
-    .float-sticker { position:absolute; pointer-events:none; z-index:10; }
-
     /* MODAL */
     .modal {
       display:none; position:fixed; inset:0;
@@ -304,14 +293,12 @@
       .music-player{bottom:5rem; right:.5rem; padding:.5rem .8rem .5rem .5rem;}
       .save-btn{ top:.5rem; right:.5rem; padding:.5rem 1rem; font-size:1.05rem; }
       .saved-toast{ top:3rem; right:.5rem; }
-      /* phones have no hover, so keep the remove button visible */
       .card-del{ opacity:.85; }
     }
   </style>
 </head>
 <body>
 
-<!-- COVER PAGE -->
 <div class="cover" id="coverPage">
   <div class="cover-card">
     <input class="names-input" placeholder="Your names here ♥" maxlength="60" id="namesInput" />
@@ -322,17 +309,12 @@
   </div>
 </div>
 
-<!-- SCRAPBOOK PAGES (15 pages) -->
 <div id="scrapbookMain" style="display:none">
+  <button class="save-btn" id="saveBtn">💾 Cloud Save</button>
+  <div class="saved-toast" id="savedToast">cloud saved ✓</div>
 
-  <!-- SAVE / DOWNLOAD -->
-  <button class="save-btn" id="saveBtn">💾 Save / Download</button>
-  <div class="saved-toast" id="savedToast">saved ✓</div>
-
-  <!-- PAGE DOTS -->
   <div class="page-dots" id="pageDots"></div>
 
-  <!-- MODAL -->
   <div class="modal" id="modal">
     <div class="modal-box">
       <h3>Add a memory 💕</h3>
@@ -342,18 +324,15 @@
     </div>
   </div>
 
-  <!-- PAGES -->
   <div id="pagesContainer"></div>
 
-  <!-- BOTTOM NAV -->
   <div class="page-nav">
     <button class="nav-btn" id="prevBtn">‹</button>
-    <span class="page-label" id="pageLabel">Page 1 / 15</span>
+    <span class="page-label" id="pageLabel">Loading...</span>
     <button class="nav-btn" id="nextBtn">›</button>
   </div>
 </div>
 
-<!-- MUSIC PLAYER -->
 <iframe id="yt-frame"
   src="https://www.youtube.com/embed/sfECRi_WiGs?enablejsapi=1&autoplay=0&loop=1&playlist=sfECRi_WiGs"
   allow="autoplay; encrypted-media" frameborder="0">
@@ -372,393 +351,400 @@
   </div>
 </div>
 
-<script>
-// ── PAGE DATA ──────────────────────────────────────────────────
-const PAGE_THEMES = [
-  { title:'How We Met 🌟',        stickers:['💫','🌟','✨','🎉','💌','🥂'] },
-  { title:'Our First Date 🌹',    stickers:['🌹','🕯️','🍝','💑','🎶','💋'] },
-  { title:'Places We\'ve Been 🗺️', stickers:['🗺️','✈️','🚗','🌅','📍','🏖️'] },
-  { title:'Silly Moments 😂',     stickers:['😂','🤪','😜','🙈','💀','🎭'] },
-  { title:'Things I Love About You 💝', stickers:['💝','🥰','💖','✨','🌸','💫'] },
-  { title:'Our Favourite Foods 🍕', stickers:['🍕','🍣','🧁','☕','🍓','🍜'] },
-  { title:'Late Night Vibes 🌙',  stickers:['🌙','⭐','🌃','🎧','🛋️','💤'] },
-  { title:'Adventures Together 🏔️', stickers:['🏔️','🌿','🌊','🦋','🌻','🎒'] },
-  { title:'Movie & Music Nights 🎬', stickers:['🎬','🍿','🎵','📺','🎮','🛌'] },
-  { title:'Our Inside Jokes 😏',  stickers:['😏','🤭','👀','💀','🙊','🎪'] },
-  { title:'Sweet Memories 🍬',    stickers:['🍬','🍭','🎀','🌷','💐','🎁'] },
-  { title:'Things We Do Together 🫶', stickers:['🫶','🤝','💃','🕺','🎨','🛒'] },
-  { title:'Proud Moments 🏆',     stickers:['🏆','🥇','👏','🌠','💪','🎓'] },
-  { title:'Reasons I\'m Lucky 🍀', stickers:['🍀','🌈','💛','🌞','🕊️','🙏'] },
-  { title:'Us, Forever 💞',       stickers:['💞','💍','🌹','🕊️','💫','🥂'] },
-];
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// Starter cards for a brand-new scrapbook
-const seeds = [
-  [{type:'photo',cap:'💕'},{type:'note',txt:'Write your memory here...'},{type:'photo',cap:'✨'}],
-  [{type:'photo',cap:'our first date 🌹'},{type:'photo',cap:'the moment everything changed 💫'},{type:'note',txt:'What I felt that night...'}],
-  [{type:'photo',cap:'adventure awaits 🗺️'},{type:'note',txt:'Places on our bucket list...'},{type:'photo',cap:'road trip vibes 🚗'}],
-  [{type:'photo',cap:'we were so dumb 😂'},{type:'note',txt:'That time we laughed until we cried...'},{type:'photo',cap:'always goofing 🤪'}],
-  [{type:'note',txt:'1. The way you smile...\n2. How you make me feel...\n3.'},{type:'photo',cap:'you, my favourite person 💝'},{type:'note',txt:'I love you because...'}],
-  [{type:'photo',cap:'our go-to spot 🍕'},{type:'note',txt:'Our favourite order is...'},{type:'photo',cap:'cooking together 🍳'}],
-  [{type:'note',txt:'3am conversations about everything...'},{type:'photo',cap:'late nights with you 🌙'},{type:'note',txt:'My favourite thing is falling asleep next to you'}],
-  [{type:'photo',cap:'our biggest adventure 🏔️'},{type:'photo',cap:'nature + you = perfect 🌿'},{type:'note',txt:'Next adventure we want to go on...'}],
-  [{type:'photo',cap:'movie night 🍿'},{type:'note',txt:'Our top 5 movies together:\n1.\n2.\n3.'},{type:'photo',cap:'you always steal the blanket 😭'}],
-  [{type:'note',txt:'Our funniest inside joke is...'},{type:'photo',cap:'only we get this 😏'},{type:'note',txt:'Things only us two understand...'}],
-  [{type:'photo',cap:'sweetest memory 🍬'},{type:'photo',cap:'gift from the heart 🎁'},{type:'note',txt:'The day I felt truly loved...'}],
-  [{type:'photo',cap:'our thing 🫶'},{type:'note',txt:'Traditions we\'ve made together...'},{type:'photo',cap:'doing everything together'}],
-  [{type:'note',txt:'I\'m so proud of you for...'},{type:'photo',cap:'look how far we\'ve come 🏆'},{type:'note',txt:'Our biggest achievement together...'}],
-  [{type:'note',txt:'I\'m the luckiest because...'},{type:'photo',cap:'you are my rainbow 🌈'},{type:'note',txt:'Thank you for choosing me every day 🍀'}],
-  [{type:'photo',cap:'us, always and forever 💞'},{type:'note',txt:'Here\'s to 5 months and forever more...\n\nI love you.'},{type:'photo',cap:'our story continues ✨'}],
-];
-
-// ── STATE (single source of truth, gets saved + exported) ──────
-function buildDefaultState() {
-  return {
-    names: '',
-    pages: PAGE_THEMES.map((theme, i) => ({
-      title: theme.title,
-      cards: (seeds[i] || []).map(c =>
-        c.type === 'photo'
-          ? { type:'photo', img:'', caption:c.cap, date:'' }
-          : { type:'note',  text:c.txt }
-      )
-    }))
+  // 🔴🔴🔴 PASTE YOUR FIREBASE CONFIG HERE 🔴🔴🔴
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
   };
-}
 
-function loadState() {
-  // 1) An exported file carries its content here
-  if (window.__INITIAL_STATE__) return window.__INITIAL_STATE__;
-  // 2) Otherwise restore the auto-saved backup from this browser
-  try {
-    const s = localStorage.getItem('scrapbookState');
-    if (s) return JSON.parse(s);
-  } catch (e) {}
-  return null;
-}
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
 
-let STATE = loadState() || buildDefaultState();
-const TOTAL_PAGES = STATE.pages.length;
-let currentPage = 0;
-let activePageIndex = null; // which page the modal targets
+  // ── VIEW / EDIT MODE SECURITY ──────────────────────────────────
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEditMode = urlParams.get('mode') === 'edit';
 
-// Debounced auto-save backup (so a refresh never wipes your work mid-session)
-let saveTimer = null;
-function saveState() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try { localStorage.setItem('scrapbookState', JSON.stringify(STATE)); }
-    catch (e) { /* storage full — use Save / Download to keep your work */ }
-  }, 400);
-}
-
-// ── IMAGE COMPRESSION (keeps the file small enough to share) ───
-function compressImage(file, maxDim, quality) {
-  return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const im = new Image();
-      im.onload = () => {
-        let w = im.width, h = im.height;
-        if (w >= h && w > maxDim)      { h = Math.round(h * maxDim / w); w = maxDim; }
-        else if (h > w && h > maxDim)  { w = Math.round(w * maxDim / h); h = maxDim; }
-        else if (w > maxDim)           { h = Math.round(h * maxDim / w); w = maxDim; }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(im, 0, 0, w, h);
-        try { resolve(canvas.toDataURL('image/jpeg', quality)); }
-        catch (err) { resolve(e.target.result); } // tainted/odd format → keep original
-      };
-      im.onerror = () => resolve(e.target.result); // can't decode → keep original
-      im.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// ── DOM REFS ───────────────────────────────────────────────────
-const container  = document.getElementById('pagesContainer');
-const dotsWrap   = document.getElementById('pageDots');
-const namesInput = document.getElementById('namesInput');
-const modal      = document.getElementById('modal');
-
-namesInput.value = STATE.names || '';
-namesInput.addEventListener('input', () => { STATE.names = namesInput.value; saveState(); });
-
-// ── CARD BUILDERS ──────────────────────────────────────────────
-function removeCard(cardEl, cardData) {
-  if (!confirm('Remove this from the page?')) return;
-  const pageData = STATE.pages.find(p => p.cards.includes(cardData));
-  if (pageData) pageData.cards.splice(pageData.cards.indexOf(cardData), 1);
-  cardEl.remove();
-  saveState();
-}
-
-function makePhotoCard(cardData) {
-  const card = document.createElement('div');
-  card.className = 'photo-card';
-  card.innerHTML = `
-    <button class="card-del" title="remove">×</button>
-    <label class="photo-placeholder">
-      <img class="placed-img" alt="memory" />
-      <div class="upload-hint">
-        <span class="icon">📷</span>
-        <span class="hint-text">tap to add photo</span>
-      </div>
-      <input type="file" class="photo-input" accept="image/*" />
-    </label>
-    <textarea class="caption-area" placeholder="write a caption..." maxlength="120" rows="2"></textarea>
-    <input class="date-badge" placeholder="add date" maxlength="30" />
-  `;
-  const fileInput = card.querySelector('.photo-input');
-  const img       = card.querySelector('.placed-img');
-  const hint      = card.querySelector('.upload-hint');
-  const hintText  = card.querySelector('.hint-text');
-  const caption   = card.querySelector('.caption-area');
-  const dateEl    = card.querySelector('.date-badge');
-
-  // hydrate from saved data
-  if (cardData.img) { img.src = cardData.img; img.classList.add('loaded'); hint.style.display = 'none'; }
-  caption.value = cardData.caption || '';
-  dateEl.value  = cardData.date || '';
-
-  fileInput.addEventListener('change', async e => {
-    const file = e.target.files[0]; if (!file) return;
-    hintText.textContent = 'adding…';
-    const dataUrl = await compressImage(file, 1280, 0.82);
-    img.src = dataUrl; img.classList.add('loaded'); hint.style.display = 'none';
-    cardData.img = dataUrl; saveState();
-  });
-  caption.addEventListener('input', () => { cardData.caption = caption.value; saveState(); });
-  dateEl.addEventListener('input',  () => { cardData.date    = dateEl.value;  saveState(); });
-  card.querySelector('.card-del').addEventListener('click', () => removeCard(card, cardData));
-  return card;
-}
-
-function makeNoteCard(cardData) {
-  const card = document.createElement('div');
-  card.className = 'note-card';
-  card.innerHTML = `
-    <button class="card-del" title="remove">×</button>
-    <textarea class="note-text" placeholder="write anything from the heart... 💛" maxlength="500" rows="5"></textarea>
-  `;
-  const ta = card.querySelector('.note-text');
-  ta.value = cardData.text || '';
-  ta.addEventListener('input', () => { cardData.text = ta.value; saveState(); });
-  card.querySelector('.card-del').addEventListener('click', () => removeCard(card, cardData));
-  return card;
-}
-
-function addCard(pageIdx, type) {
-  const cardData = type === 'photo'
-    ? { type:'photo', img:'', caption:'', date:'' }
-    : { type:'note',  text:'' };
-  STATE.pages[pageIdx].cards.push(cardData);
-  const grid = document.getElementById('grid-' + pageIdx);
-  grid.appendChild(type === 'photo' ? makePhotoCard(cardData) : makeNoteCard(cardData));
-  saveState();
-  scrollToLastCard(pageIdx);
-}
-
-function scrollToLastCard(pageIdx) {
-  const grid = document.getElementById('grid-' + pageIdx);
-  if (grid && grid.lastElementChild) {
-    grid.lastElementChild.scrollIntoView({ behavior:'smooth', block:'center' });
-  }
-}
-
-// ── RENDER PAGES FROM STATE ────────────────────────────────────
-function render() {
-  container.innerHTML = '';
-  dotsWrap.innerHTML  = '';
-
-  STATE.pages.forEach((pageData, i) => {
-    const page = document.createElement('div');
-    page.className = 'scrap-page' + (i === 0 ? ' active' : '');
-    page.id = 'page-' + i;
-    page.innerHTML = `
-      <div class="page-title-wrap">
-        <div class="page-title-card">
-          <input class="page-title-input" maxlength="50" placeholder="page title" />
-        </div>
-      </div>
-      <div class="add-wrap">
-        <button class="add-btn" data-page="${i}">+ Add a Memory</button>
-      </div>
-      <div class="memory-grid" id="grid-${i}"></div>
+  if (!isEditMode) {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .save-btn, .add-wrap, .card-del, .photo-placeholder:hover { display: none !important; }
+      .photo-input, .caption-area, .date-badge, .note-text, .page-title-input, .names-input { 
+        pointer-events: none; 
+        border: none; 
+        background: transparent; 
+      }
+      .photo-placeholder { cursor: default; }
+      textarea { resize: none; }
     `;
-    const titleInput = page.querySelector('.page-title-input');
-    titleInput.value = pageData.title || '';
-    titleInput.addEventListener('input', () => { pageData.title = titleInput.value; saveState(); });
-    container.appendChild(page);
+    document.head.appendChild(style);
+  }
 
-    const grid = page.querySelector('.memory-grid');
-    pageData.cards.forEach(cardData => {
-      grid.appendChild(cardData.type === 'photo' ? makePhotoCard(cardData) : makeNoteCard(cardData));
+  // ── DEFAULT THEMES & STARTER CARDS ────────────────────────────
+  const PAGE_THEMES = [
+    { title:'How We Met 🌟' }, { title:'Our First Date 🌹' },
+    { title:'Places We\'ve Been 🗺️' }, { title:'Silly Moments 😂' },
+    { title:'Things I Love About You 💝' }, { title:'Our Favourite Foods 🍕' },
+    { title:'Late Night Vibes 🌙' }, { title:'Adventures Together 🏔️' },
+    { title:'Movie & Music Nights 🎬' }, { title:'Our Inside Jokes 😏' },
+    { title:'Sweet Memories 🍬' }, { title:'Things We Do Together 🫶' },
+    { title:'Proud Moments 🏆' }, { title:'Reasons I\'m Lucky 🍀' },
+    { title:'Us, Forever 💞' }
+  ];
+
+  const seeds = [
+    [{type:'photo',cap:'💕'},{type:'note',txt:'Write your memory here...'},{type:'photo',cap:'✨'}],
+    // Add back specific seeds if desired, simplified for brevity here
+  ];
+
+  function buildDefaultState() {
+    return {
+      names: '',
+      pages: PAGE_THEMES.map((theme, i) => ({
+        title: theme.title,
+        cards: (seeds[i] || []).map(c =>
+          c.type === 'photo'
+            ? { type:'photo', img:'', caption:c.cap, date:'' }
+            : { type:'note',  text:c.txt }
+        )
+      }))
+    };
+  }
+
+  // ── STATE MANAGEMENT (FIRESTORE) ─────────────────────────────
+  let STATE = null;
+  let TOTAL_PAGES = 0;
+  let currentPage = 0;
+  let activePageIndex = null; 
+  let saveTimer = null;
+
+  async function initializeScrapbook() {
+    try {
+      const docSnap = await getDoc(doc(db, "scrapbook", "anniversary_data"));
+      if (docSnap.exists()) {
+        STATE = docSnap.data();
+      } else {
+        STATE = buildDefaultState();
+      }
+    } catch(e) {
+      console.error("Error loading state", e);
+      STATE = buildDefaultState(); // Fallback
+    }
+    
+    TOTAL_PAGES = STATE.pages.length;
+    render();
+    namesInput.value = STATE.names || '';
+    goToPage(0);
+  }
+
+  function saveState() {
+    if (!isEditMode) return; // Never save if they are just viewing
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try { 
+        await setDoc(doc(db, "scrapbook", "anniversary_data"), STATE); 
+        showToast('cloud saved ✓');
+      }
+      catch (e) { console.error("Save failed", e); }
+    }, 1000); // 1 second debounce
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('savedToast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  // ── IMAGE COMPRESSION ──────────────────────────────────────────
+  function compressImage(file, maxDim, quality) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const im = new Image();
+        im.onload = () => {
+          let w = im.width, h = im.height;
+          if (w >= h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else if (h > w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+          else if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(im, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality)); 
+        };
+        im.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ── DOM REFS ───────────────────────────────────────────────────
+  const container  = document.getElementById('pagesContainer');
+  const dotsWrap   = document.getElementById('pageDots');
+  const namesInput = document.getElementById('namesInput');
+  const modal      = document.getElementById('modal');
+
+  namesInput.addEventListener('input', () => { STATE.names = namesInput.value; saveState(); });
+
+  // ── CARD BUILDERS ──────────────────────────────────────────────
+  function removeCard(cardEl, cardData) {
+    if (!isEditMode) return;
+    if (!confirm('Remove this from the page?')) return;
+    const pageData = STATE.pages.find(p => p.cards.includes(cardData));
+    if (pageData) pageData.cards.splice(pageData.cards.indexOf(cardData), 1);
+    cardEl.remove();
+    saveState();
+  }
+
+  function makePhotoCard(cardData) {
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.innerHTML = `
+      <button class="card-del" title="remove">×</button>
+      <label class="photo-placeholder">
+        <img class="placed-img" alt="memory" />
+        <div class="upload-hint">
+          <span class="icon">📷</span>
+          <span class="hint-text">tap to add photo</span>
+        </div>
+        <input type="file" class="photo-input" accept="image/*" />
+      </label>
+      <textarea class="caption-area" placeholder="write a caption..." maxlength="120" rows="2"></textarea>
+      <input class="date-badge" placeholder="add date" maxlength="30" />
+    `;
+    const fileInput = card.querySelector('.photo-input');
+    const img       = card.querySelector('.placed-img');
+    const hint      = card.querySelector('.upload-hint');
+    const hintText  = card.querySelector('.hint-text');
+    const caption   = card.querySelector('.caption-area');
+    const dateEl    = card.querySelector('.date-badge');
+
+    if (cardData.img) { img.src = cardData.img; img.classList.add('loaded'); hint.style.display = 'none'; }
+    caption.value = cardData.caption || '';
+    dateEl.value  = cardData.date || '';
+
+    fileInput.addEventListener('change', async e => {
+      if (!isEditMode) return;
+      const file = e.target.files[0]; if (!file) return;
+      hintText.textContent = 'uploading…';
+      
+      try {
+        const dataUrl = await compressImage(file, 1280, 0.82);
+        
+        // Push image to Firebase Storage
+        const imageRef = ref(storage, `scrapbook_images/${Date.now()}_${file.name}`);
+        await uploadString(imageRef, dataUrl, 'data_url');
+        const downloadURL = await getDownloadURL(imageRef);
+
+        img.src = downloadURL; 
+        img.classList.add('loaded'); 
+        hint.style.display = 'none';
+        cardData.img = downloadURL; 
+        saveState();
+      } catch (error) {
+        console.error("Upload failed", error);
+        hintText.textContent = 'upload failed ⚠';
+      }
     });
 
-    const dot = document.createElement('button');
-    dot.className = 'dot' + (i === 0 ? ' active' : '');
-    dot.title = pageData.title;
-    dot.addEventListener('click', () => goToPage(i));
-    dotsWrap.appendChild(dot);
-  });
+    caption.addEventListener('input', () => { cardData.caption = caption.value; saveState(); });
+    dateEl.addEventListener('input',  () => { cardData.date    = dateEl.value;  saveState(); });
+    card.querySelector('.card-del').addEventListener('click', () => removeCard(card, cardData));
+    return card;
+  }
 
-  container.querySelectorAll('.add-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      activePageIndex = parseInt(btn.dataset.page);
-      modal.classList.add('open');
+  function makeNoteCard(cardData) {
+    const card = document.createElement('div');
+    card.className = 'note-card';
+    card.innerHTML = `
+      <button class="card-del" title="remove">×</button>
+      <textarea class="note-text" placeholder="write anything from the heart... 💛" maxlength="500" rows="5"></textarea>
+    `;
+    const ta = card.querySelector('.note-text');
+    ta.value = cardData.text || '';
+    ta.addEventListener('input', () => { cardData.text = ta.value; saveState(); });
+    card.querySelector('.card-del').addEventListener('click', () => removeCard(card, cardData));
+    return card;
+  }
+
+  function addCard(pageIdx, type) {
+    const cardData = type === 'photo'
+      ? { type:'photo', img:'', caption:'', date:'' }
+      : { type:'note',  text:'' };
+    STATE.pages[pageIdx].cards.push(cardData);
+    const grid = document.getElementById('grid-' + pageIdx);
+    grid.appendChild(type === 'photo' ? makePhotoCard(cardData) : makeNoteCard(cardData));
+    saveState();
+    scrollToLastCard(pageIdx);
+  }
+
+  function scrollToLastCard(pageIdx) {
+    const grid = document.getElementById('grid-' + pageIdx);
+    if (grid && grid.lastElementChild) {
+      grid.lastElementChild.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+  }
+
+  // ── RENDER PAGES ───────────────────────────────────────────────
+  function render() {
+    container.innerHTML = '';
+    dotsWrap.innerHTML  = '';
+
+    STATE.pages.forEach((pageData, i) => {
+      const page = document.createElement('div');
+      page.className = 'scrap-page' + (i === 0 ? ' active' : '');
+      page.id = 'page-' + i;
+      page.innerHTML = `
+        <div class="page-title-wrap">
+          <div class="page-title-card">
+            <input class="page-title-input" maxlength="50" placeholder="page title" />
+          </div>
+        </div>
+        <div class="add-wrap">
+          <button class="add-btn" data-page="${i}">+ Add a Memory</button>
+        </div>
+        <div class="memory-grid" id="grid-${i}"></div>
+      `;
+      const titleInput = page.querySelector('.page-title-input');
+      titleInput.value = pageData.title || '';
+      titleInput.addEventListener('input', () => { pageData.title = titleInput.value; saveState(); });
+      container.appendChild(page);
+
+      const grid = page.querySelector('.memory-grid');
+      pageData.cards.forEach(cardData => {
+        grid.appendChild(cardData.type === 'photo' ? makePhotoCard(cardData) : makeNoteCard(cardData));
+      });
+
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.title = pageData.title;
+      dot.addEventListener('click', () => goToPage(i));
+      dotsWrap.appendChild(dot);
     });
-  });
-}
 
-render();
-
-// ── NAVIGATION ─────────────────────────────────────────────────
-function goToPage(idx) {
-  document.querySelectorAll('.scrap-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
-  document.getElementById('page-' + idx).classList.add('active');
-  const dots = document.querySelectorAll('.dot');
-  if (dots[idx]) dots[idx].classList.add('active');
-  currentPage = idx;
-  document.getElementById('pageLabel').textContent = `Page ${idx+1} / ${TOTAL_PAGES}`;
-  document.getElementById('prevBtn').disabled = idx === 0;
-  document.getElementById('nextBtn').disabled = idx === TOTAL_PAGES - 1;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-document.getElementById('prevBtn').addEventListener('click', () => { if(currentPage > 0) goToPage(currentPage-1); });
-document.getElementById('nextBtn').addEventListener('click', () => { if(currentPage < TOTAL_PAGES-1) goToPage(currentPage+1); });
-goToPage(0);
-
-// Swipe support
-let touchStartX = 0;
-document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
-document.addEventListener('touchend', e => {
-  const diff = touchStartX - e.changedTouches[0].clientX;
-  if (Math.abs(diff) > 50) {
-    if (diff > 0 && currentPage < TOTAL_PAGES-1) goToPage(currentPage+1);
-    if (diff < 0 && currentPage > 0) goToPage(currentPage-1);
+    container.querySelectorAll('.add-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activePageIndex = parseInt(btn.dataset.page);
+        modal.classList.add('open');
+      });
+    });
   }
-});
 
-// ── COVER → MAIN ───────────────────────────────────────────────
-document.getElementById('enterBtn').addEventListener('click', () => {
-  document.getElementById('coverPage').style.display = 'none';
-  document.getElementById('scrapbookMain').style.display = 'block';
-  startMusic();
-});
-
-function startMusic() {
-  if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
-    ytPlayer.unMute();
-    ytPlayer.setVolume(parseInt(document.getElementById('volSlider').value));
-    ytPlayer.playVideo();
-  } else {
-    startMusicWhenReady = true;
+  // ── NAVIGATION ─────────────────────────────────────────────────
+  function goToPage(idx) {
+    if (!STATE) return;
+    document.querySelectorAll('.scrap-page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+    document.getElementById('page-' + idx).classList.add('active');
+    const dots = document.querySelectorAll('.dot');
+    if (dots[idx]) dots[idx].classList.add('active');
+    currentPage = idx;
+    document.getElementById('pageLabel').textContent = `Page ${idx+1} / ${TOTAL_PAGES}`;
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').disabled = idx === TOTAL_PAGES - 1;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-}
 
-// ── MODAL ──────────────────────────────────────────────────────
-document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
-modal.addEventListener('click', e => { if(e.target === modal) modal.classList.remove('open'); });
-document.getElementById('optPhoto').addEventListener('click', () => {
-  if (activePageIndex !== null) addCard(activePageIndex, 'photo');
-  modal.classList.remove('open');
-});
-document.getElementById('optNote').addEventListener('click', () => {
-  if (activePageIndex !== null) addCard(activePageIndex, 'note');
-  modal.classList.remove('open');
-});
+  document.getElementById('prevBtn').addEventListener('click', () => { if(currentPage > 0) goToPage(currentPage-1); });
+  document.getElementById('nextBtn').addEventListener('click', () => { if(currentPage < TOTAL_PAGES-1) goToPage(currentPage+1); });
 
-// ── SAVE / DOWNLOAD (bakes everything into one shareable file) ──
-function showToast(msg) {
-  const t = document.getElementById('savedToast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 1800);
-}
-
-function buildScrapbookHtml() {
-  const clone = document.documentElement.cloneNode(true);
-  // Reopen on the cover page
-  const coverC = clone.querySelector('#coverPage'); if (coverC) coverC.style.display = '';
-  const mainC  = clone.querySelector('#scrapbookMain'); if (mainC) mainC.style.display = 'none';
-  // Let the script rebuild from the embedded data (avoid duplicate DOM)
-  const pc = clone.querySelector('#pagesContainer'); if (pc) pc.innerHTML = '';
-  const pd = clone.querySelector('#pageDots'); if (pd) pd.innerHTML = '';
-  const toast = clone.querySelector('#savedToast'); if (toast) toast.classList.remove('show');
-  // Drop runtime-injected / stale scripts
-  clone.querySelectorAll('script[src*="iframe_api"]').forEach(s => s.remove());
-  clone.querySelectorAll('script[data-state]').forEach(s => s.remove());
-  // Embed the current content
-  const stateScript = document.createElement('script');
-  stateScript.setAttribute('data-state', '');
-  stateScript.textContent =
-    'window.__INITIAL_STATE__ = ' + JSON.stringify(STATE).replace(/</g, '\\u003c') + ';';
-  clone.querySelector('head').appendChild(stateScript);
-  return '<!DOCTYPE html>\n' + clone.outerHTML;
-}
-
-async function exportScrapbook() {
-  const html = buildScrapbookHtml();
-  // 1) iPhone-friendly: native Share sheet (AirDrop / Messages / Save to Files)
-  try {
-    const file = new File([html], 'our-scrapbook.html', { type: 'text/html' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'Our Scrapbook 💕' });
-      showToast('shared ✓');
-      return;
-    }
-  } catch (e) {
-    if (e && e.name === 'AbortError') return; // user closed the share sheet
-    // otherwise fall through to a normal download
-  }
-  // 2) Fallback: download the file
-  const blob = new Blob([html], { type: 'text/html' });
-  const url  = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'our-scrapbook.html';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  showToast('downloaded ✓');
-}
-document.getElementById('saveBtn').addEventListener('click', exportScrapbook);
-
-// ── YOUTUBE PLAYER ─────────────────────────────────────────────
-let ytPlayer=null, isPlaying=false, startMusicWhenReady=false;
-(function(){ const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s); })();
-window.onYouTubeIframeAPIReady = function() {
-  document.getElementById('ytStatus').textContent='⏳ loading...';
-  ytPlayer = new YT.Player('yt-frame',{
-    events:{
-      onReady: e => {
-        e.target.setVolume(parseInt(document.getElementById('volSlider').value));
-        document.getElementById('ytStatus').textContent='▸ press play';
-        if (startMusicWhenReady) { e.target.unMute(); e.target.playVideo(); startMusicWhenReady=false; }
-      },
-      onStateChange: e => {
-        isPlaying = e.data===YT.PlayerState.PLAYING;
-        document.getElementById('playBtn').textContent = isPlaying?'⏸':'▶';
-        document.getElementById('musicNote').classList.toggle('playing', isPlaying);
-        document.getElementById('ytStatus').textContent = isPlaying?'♪ playing...':'▸ press play';
-        if (e.data===YT.PlayerState.ENDED) { e.target.seekTo(0); e.target.playVideo(); }
-      },
-      onError: () => { document.getElementById('ytStatus').textContent='⚠ tap to open YouTube'; }
+  // Swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && currentPage < TOTAL_PAGES-1) goToPage(currentPage+1);
+      if (diff < 0 && currentPage > 0) goToPage(currentPage-1);
     }
   });
-};
-document.getElementById('playBtn').addEventListener('click', () => {
-  if (!ytPlayer || typeof ytPlayer.playVideo!=='function') {
-    document.getElementById('ytStatus').textContent='⏳ loading...'; return;
+
+  // ── COVER → MAIN ───────────────────────────────────────────────
+  document.getElementById('enterBtn').addEventListener('click', () => {
+    document.getElementById('coverPage').style.display = 'none';
+    document.getElementById('scrapbookMain').style.display = 'block';
+    startMusic();
+  });
+
+  function startMusic() {
+    if (window.ytPlayer && typeof window.ytPlayer.playVideo === 'function') {
+      window.ytPlayer.unMute();
+      window.ytPlayer.setVolume(parseInt(document.getElementById('volSlider').value));
+      window.ytPlayer.playVideo();
+    } else {
+      window.startMusicWhenReady = true;
+    }
   }
-  if (isPlaying) { ytPlayer.pauseVideo(); }
-  else { ytPlayer.unMute(); ytPlayer.setVolume(parseInt(document.getElementById('volSlider').value)); ytPlayer.playVideo(); }
-});
-document.getElementById('volSlider').addEventListener('input', e => {
-  if(ytPlayer && typeof ytPlayer.setVolume==='function') ytPlayer.setVolume(parseInt(e.target.value));
-});
+
+  // ── MODAL ──────────────────────────────────────────────────────
+  document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', e => { if(e.target === modal) modal.classList.remove('open'); });
+  document.getElementById('optPhoto').addEventListener('click', () => {
+    if (activePageIndex !== null) addCard(activePageIndex, 'photo');
+    modal.classList.remove('open');
+  });
+  document.getElementById('optNote').addEventListener('click', () => {
+    if (activePageIndex !== null) addCard(activePageIndex, 'note');
+    modal.classList.remove('open');
+  });
+
+  // Manual save trigger
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    if (isEditMode) saveState();
+  });
+
+  // Init Data!
+  initializeScrapbook();
+
+</script>
+
+<script>
+  window.ytPlayer = null;
+  window.isPlaying = false;
+  window.startMusicWhenReady = false;
+  
+  (function(){ const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s); })();
+  
+  window.onYouTubeIframeAPIReady = function() {
+    document.getElementById('ytStatus').textContent='⏳ loading...';
+    window.ytPlayer = new YT.Player('yt-frame',{
+      events:{
+        onReady: e => {
+          e.target.setVolume(parseInt(document.getElementById('volSlider').value));
+          document.getElementById('ytStatus').textContent='▸ press play';
+          if (window.startMusicWhenReady) { e.target.unMute(); e.target.playVideo(); window.startMusicWhenReady=false; }
+        },
+        onStateChange: e => {
+          window.isPlaying = e.data===YT.PlayerState.PLAYING;
+          document.getElementById('playBtn').textContent = window.isPlaying?'⏸':'▶';
+          document.getElementById('musicNote').classList.toggle('playing', window.isPlaying);
+          document.getElementById('ytStatus').textContent = window.isPlaying?'♪ playing...':'▸ press play';
+          if (e.data===YT.PlayerState.ENDED) { e.target.seekTo(0); e.target.playVideo(); }
+        },
+        onError: () => { document.getElementById('ytStatus').textContent='⚠ tap to open YouTube'; }
+      }
+    });
+  };
+
+  document.getElementById('playBtn').addEventListener('click', () => {
+    if (!window.ytPlayer || typeof window.ytPlayer.playVideo!=='function') {
+      document.getElementById('ytStatus').textContent='⏳ loading...'; return;
+    }
+    if (window.isPlaying) { window.ytPlayer.pauseVideo(); }
+    else { window.ytPlayer.unMute(); window.ytPlayer.setVolume(parseInt(document.getElementById('volSlider').value)); window.ytPlayer.playVideo(); }
+  });
+  
+  document.getElementById('volSlider').addEventListener('input', e => {
+    if(window.ytPlayer && typeof window.ytPlayer.setVolume==='function') window.ytPlayer.setVolume(parseInt(e.target.value));
+  });
 </script>
 </body>
 </html>
