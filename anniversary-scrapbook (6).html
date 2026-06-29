@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our 5 Month Anniversary 💕</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Reenie+Beanie&family=Lato:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --cream:#FAF3E8; --warm:#F2E6D0; --blush:#E8B4B8;
+      --rose:#C97D84; --rust:#9E5A5A; --ink:#3A2A2A;
+      --tape:rgba(255,220,150,0.55); --shadow:rgba(80,40,40,0.15);
+    }
+
+    body {
+      background-color:#D9CBBA;
+      background-image:
+        repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(180,150,120,0.18) 28px),
+        repeating-linear-gradient(90deg,transparent,transparent 27px,rgba(180,150,120,0.10) 28px);
+      font-family:'Lato',sans-serif;
+      color:var(--ink);
+    }
+
+    /* ── COVER PAGE ── */
+    .cover {
+      min-height:100vh;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:2rem; text-align:center; position:relative;
+    }
+    .cover-card {
+      background:var(--cream); padding:3rem 3.5rem; border-radius:4px;
+      box-shadow:6px 8px 28px var(--shadow); position:relative;
+      transform:rotate(-1deg); max-width:500px; width:100%;
+    }
+    .cover-card::before, .cover-card::after {
+      content:''; position:absolute; width:60px; height:24px;
+      background:var(--tape); border-radius:2px; top:-12px;
+    }
+    .cover-card::before { left:40px; transform:rotate(-5deg); }
+    .cover-card::after  { right:40px; transform:rotate(4deg); }
+    .cover-card h1 {
+      font-family:'Reenie Beanie',cursive; font-size:clamp(3rem,8vw,5rem);
+      color:var(--rust); line-height:1;
+    }
+    .cover-card p { font-family:'Caveat',cursive; font-size:1.4rem; color:var(--rose); margin-top:.6rem; }
+    .cover-card .hearts { font-size:1.8rem; letter-spacing:6px; margin-top:.5rem; }
+    .names-input {
+      font-family:'Reenie Beanie',cursive; font-size:clamp(1.6rem,4vw,2.2rem);
+      color:var(--rust); border:none; background:transparent;
+      text-align:center; outline:none; width:100%; margin-bottom:.4rem;
+    }
+    .names-input::placeholder { color:var(--blush); }
+    .enter-btn {
+      margin-top:2rem; background:var(--rust); color:white; border:none;
+      padding:.8rem 2.5rem; font-family:'Caveat',cursive; font-size:1.3rem;
+      border-radius:30px; cursor:pointer; box-shadow:2px 4px 10px var(--shadow);
+      transition:background .15s, transform .15s;
+    }
+    .enter-btn:hover { background:var(--rose); transform:translateY(-2px); }
+
+    /* ── PAGE NAV ── */
+    .page-nav {
+      position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%);
+      z-index:300; display:flex; align-items:center; gap:.8rem;
+      background:var(--cream); border-radius:40px; padding:.5rem 1.2rem;
+      box-shadow:3px 5px 18px var(--shadow); font-family:'Caveat',cursive;
+    }
+    .nav-btn {
+      background:var(--rust); color:white; border:none; width:34px; height:34px;
+      border-radius:50%; font-size:1.1rem; cursor:pointer; display:flex;
+      align-items:center; justify-content:center;
+      transition:background .15s, transform .15s;
+    }
+    .nav-btn:hover { background:var(--rose); transform:scale(1.1); }
+    .nav-btn:disabled { background:var(--blush); cursor:default; transform:none; }
+    .page-label { font-size:1rem; color:var(--rust); min-width:80px; text-align:center; }
+
+    /* ── SAVE / DOWNLOAD BUTTON ── */
+    .save-btn {
+      position:fixed; top:1rem; right:1rem; z-index:350;
+      background:var(--rust); color:#fff; border:none;
+      padding:.6rem 1.3rem; font-family:'Caveat',cursive; font-size:1.15rem;
+      border-radius:30px; cursor:pointer; box-shadow:2px 4px 12px var(--shadow);
+      transition:background .15s, transform .15s;
+    }
+    .save-btn:hover { background:var(--rose); transform:translateY(-2px); }
+    .saved-toast {
+      position:fixed; top:3.6rem; right:1rem; z-index:350;
+      background:var(--ink); color:#fff; padding:.5rem 1rem; border-radius:20px;
+      font-family:'Caveat',cursive; font-size:1rem; opacity:0;
+      transition:opacity .3s; pointer-events:none;
+    }
+    .saved-toast.show { opacity:.95; }
+
+    /* ── MUSIC PLAYER ── */
+    .music-player {
+      position:fixed; bottom:1.5rem; right:1.5rem; z-index:200;
+      display:flex; align-items:center; gap:.75rem;
+      background:var(--cream); border-radius:40px;
+      padding:.6rem 1.1rem .6rem .7rem;
+      box-shadow:3px 5px 18px var(--shadow);
+      font-family:'Caveat',cursive; transform:rotate(-1deg);
+    }
+    .music-player::before {
+      content:''; position:absolute; width:48px; height:18px;
+      background:var(--tape); border-radius:2px;
+      top:-8px; left:50%; transform:translateX(-50%) rotate(2deg);
+    }
+    .music-btn {
+      width:42px; height:42px; border-radius:50%; border:none;
+      background:var(--rust); color:white; font-size:1.1rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:background .2s, transform .15s;
+    }
+    .music-btn:hover { background:var(--rose); transform:scale(1.1); }
+    .music-info { line-height:1.2; }
+    .music-title { font-size:1rem; color:var(--rust); font-weight:600; }
+    .music-artist { font-size:.85rem; color:var(--rose); }
+    .music-note { font-size:1.1rem; display:inline-block; }
+    .music-note.playing { animation:float-note 1.5s ease-in-out infinite alternate; }
+    @keyframes float-note { from{transform:translateY(0) rotate(-10deg);} to{transform:translateY(-5px) rotate(10deg);} }
+    .volume-row { display:flex; align-items:center; gap:.4rem; margin-top:4px; }
+    .volume-slider {
+      -webkit-appearance:none; width:70px; height:4px;
+      border-radius:4px; background:var(--blush); outline:none; cursor:pointer;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance:none; width:12px; height:12px;
+      border-radius:50%; background:var(--rust); cursor:pointer;
+    }
+    .yt-status { font-size:.7rem; color:var(--rose); margin-top:2px; }
+    #yt-frame {
+      position:fixed; bottom:-200px; right:-200px;
+      width:1px; height:1px; opacity:0; pointer-events:none;
+    }
+
+    /* ── SCRAPBOOK PAGE ── */
+    .scrap-page {
+      display:none; min-height:100vh; padding:2rem 1rem 5rem;
+      position:relative;
+    }
+    .scrap-page.active { display:block; }
+
+    /* Page title banner */
+    .page-title-wrap { text-align:center; margin-bottom:2rem; }
+    .page-title-card {
+      display:inline-block; background:var(--cream); padding:1rem 2.5rem;
+      border-radius:4px; box-shadow:3px 5px 14px var(--shadow);
+      position:relative;
+    }
+    .page-title-card::before {
+      content:''; position:absolute; width:44px; height:18px;
+      background:var(--tape); border-radius:2px; top:-8px; left:50%;
+      transform:translateX(-50%) rotate(-2deg);
+    }
+    .page-title-input {
+      font-family:'Reenie Beanie',cursive; font-size:clamp(1.6rem,4vw,2.4rem);
+      color:var(--rust); border:none; background:transparent;
+      text-align:center; outline:none; width:100%; min-width:200px;
+    }
+    .page-title-input::placeholder { color:var(--blush); }
+
+    /* Sticker strip per page */
+    .sticker-strip {
+      max-width:1100px; margin:0 auto 2rem;
+      display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center;
+    }
+    .sticker { font-size:1.6rem; cursor:pointer; user-select:none; transition:transform .15s; }
+    .sticker:hover { transform:scale(1.3) rotate(8deg); }
+
+    /* Add memory button */
+    .add-wrap { max-width:1100px; margin:0 auto 1.5rem; text-align:center; }
+    .add-btn {
+      background:var(--rust); color:white; border:none;
+      padding:.65rem 2rem; font-family:'Caveat',cursive; font-size:1.2rem;
+      border-radius:30px; cursor:pointer; box-shadow:2px 4px 10px var(--shadow);
+      transition:transform .15s, background .15s;
+    }
+    .add-btn:hover { background:var(--rose); transform:translateY(-2px); }
+
+    /* Grid */
+    .memory-grid { max-width:1100px; margin:0 auto; columns:3 260px; column-gap:1.5rem; }
+
+    /* PHOTO CARD */
+    .photo-card {
+      break-inside:avoid; background:white; padding:10px 10px 38px;
+      margin-bottom:1.4rem; box-shadow:3px 5px 14px var(--shadow);
+      position:relative; display:inline-block; width:100%;
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .photo-card:hover { transform:scale(1.02) rotate(0deg)!important; box-shadow:6px 10px 24px var(--shadow); }
+    .photo-card:nth-child(3n+1){transform:rotate(-2.2deg);}
+    .photo-card:nth-child(3n+2){transform:rotate(1.5deg);}
+    .photo-card:nth-child(3n+3){transform:rotate(-0.8deg);}
+    .photo-card::before {
+      content:''; position:absolute; width:50px; height:20px;
+      background:var(--tape); border-radius:2px; top:-9px; left:50%;
+      transform:translateX(-50%) rotate(-2deg);
+    }
+    .photo-card:nth-child(even)::before { transform:translateX(-50%) rotate(3deg); }
+    .photo-placeholder {
+      width:100%; aspect-ratio:4/3; background:var(--warm);
+      border:2px dashed var(--blush); display:flex; flex-direction:column;
+      align-items:center; justify-content:center; cursor:pointer;
+      position:relative; overflow:hidden; transition:background .2s;
+    }
+    .photo-placeholder:hover { background:#eeddd0; }
+    .placed-img { width:100%; height:100%; object-fit:cover; display:none; position:absolute; top:0; left:0; }
+    .placed-img.loaded { display:block; }
+    .upload-hint { display:flex; flex-direction:column; align-items:center; gap:6px; pointer-events:none; position:relative; z-index:1; }
+    .upload-hint .icon { font-size:2.2rem; opacity:.5; }
+    .upload-hint span { font-family:'Caveat',cursive; font-size:.95rem; color:var(--rose); }
+    .photo-input { display:none; }
+    .caption-area {
+      margin-top:8px; font-family:'Caveat',cursive; font-size:1.1rem;
+      color:var(--ink); width:100%; border:none; background:transparent;
+      resize:none; outline:none; text-align:center; line-height:1.4; min-height:34px;
+    }
+    .caption-area::placeholder { color:var(--blush); }
+    .date-badge {
+      position:absolute; bottom:6px; right:8px;
+      font-family:'Caveat',cursive; font-size:.8rem; color:var(--rose);
+      border:none; background:transparent; outline:none; text-align:right;
+      width:130px; padding:2px 3px; border-radius:3px;
+    }
+    .date-badge::placeholder { color:var(--blush); opacity:.85; }
+    .date-badge:focus { background:#fff3f3; }
+
+    /* NOTE CARD */
+    .note-card {
+      break-inside:avoid; background:#FFF9D6; padding:1.1rem 1.3rem;
+      margin-bottom:1.4rem; box-shadow:3px 5px 14px var(--shadow);
+      position:relative; display:inline-block; width:100%;
+    }
+    .note-card:nth-child(3n+1){transform:rotate(1.5deg);}
+    .note-card:nth-child(3n+2){transform:rotate(-2deg);}
+    .note-card::before { content:'📌'; position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:1.3rem; }
+    .note-text {
+      font-family:'Caveat',cursive; font-size:1.15rem; color:var(--ink);
+      border:none; background:transparent; width:100%; resize:none;
+      outline:none; min-height:80px; line-height:1.6;
+    }
+    .note-text::placeholder { color:#C0B060; }
+
+    /* DELETE BUTTON (per card) */
+    .card-del {
+      position:absolute; top:4px; right:4px; z-index:6;
+      width:22px; height:22px; border-radius:50%; border:none;
+      background:rgba(158,90,90,.85); color:#fff; font-size:1rem; line-height:1;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      opacity:0; transition:opacity .15s, background .15s;
+    }
+    .photo-card:hover .card-del, .note-card:hover .card-del { opacity:1; }
+    .card-del:hover { background:var(--rust); }
+
+    /* FLOAT STICKER */
+    .float-sticker { position:absolute; pointer-events:none; z-index:10; }
+
+    /* MODAL */
+    .modal {
+      display:none; position:fixed; inset:0;
+      background:rgba(50,30,30,0.5); z-index:400;
+      align-items:center; justify-content:center;
+    }
+    .modal.open { display:flex; }
+    .modal-box {
+      background:var(--cream); padding:2rem; border-radius:6px;
+      box-shadow:0 8px 32px rgba(0,0,0,0.25); max-width:340px; width:90%;
+      font-family:'Caveat',cursive;
+    }
+    .modal-box h3 { font-family:'Reenie Beanie',cursive; font-size:1.8rem; color:var(--rust); margin-bottom:1rem; }
+    .modal-option {
+      display:flex; align-items:center; gap:.8rem;
+      padding:.75rem 1rem; margin-bottom:.6rem;
+      background:white; border:2px solid var(--blush);
+      border-radius:8px; cursor:pointer; font-size:1.2rem;
+      transition:background .15s, border-color .15s;
+    }
+    .modal-option:hover { background:#fce8e8; border-color:var(--rose); }
+    .modal-close {
+      margin-top:.5rem; background:none; border:none;
+      color:var(--rose); cursor:pointer; font-family:'Caveat',cursive;
+      font-size:1rem; width:100%; text-align:center;
+    }
+
+    /* PAGE DOTS */
+    .page-dots {
+      position:fixed; left:1rem; top:50%; transform:translateY(-50%);
+      z-index:300; display:flex; flex-direction:column; gap:.5rem;
+    }
+    .dot {
+      width:10px; height:10px; border-radius:50%;
+      background:var(--blush); cursor:pointer;
+      transition:background .2s, transform .2s;
+      border:none;
+    }
+    .dot.active { background:var(--rust); transform:scale(1.4); }
+    .dot:hover { background:var(--rose); }
+
+    @media(max-width:600px){
+      .memory-grid{columns:1;}
+      .page-dots{display:none;}
+      .music-player{bottom:5rem; right:.5rem; padding:.5rem .8rem .5rem .5rem;}
+      .save-btn{ top:.5rem; right:.5rem; padding:.5rem 1rem; font-size:1.05rem; }
+      .saved-toast{ top:3rem; right:.5rem; }
+      /* phones have no hover, so keep the remove button visible */
+      .card-del{ opacity:.85; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover" id="coverPage">
+  <div class="cover-card">
+    <input class="names-input" placeholder="Your names here ♥" maxlength="60" id="namesInput" />
+    <h1>5 Months Together 🌸</h1>
+    <p>a little scrapbook of us</p>
+    <div class="hearts">💕 🌿 💕</div>
+    <button class="enter-btn" id="enterBtn">Open Our Scrapbook →</button>
+  </div>
+</div>
+
+<!-- SCRAPBOOK PAGES (15 pages) -->
+<div id="scrapbookMain" style="display:none">
+
+  <!-- SAVE / DOWNLOAD -->
+  <button class="save-btn" id="saveBtn">💾 Save / Download</button>
+  <div class="saved-toast" id="savedToast">saved ✓</div>
+
+  <!-- PAGE DOTS -->
+  <div class="page-dots" id="pageDots"></div>
+
+  <!-- MODAL -->
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <h3>Add a memory 💕</h3>
+      <div class="modal-option" id="optPhoto">📷 &nbsp; Photo + Caption</div>
+      <div class="modal-option" id="optNote">✏️ &nbsp; Written Memory / Note</div>
+      <button class="modal-close" id="modalClose">cancel</button>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div id="pagesContainer"></div>
+
+  <!-- BOTTOM NAV -->
+  <div class="page-nav">
+    <button class="nav-btn" id="prevBtn">‹</button>
+    <span class="page-label" id="pageLabel">Page 1 / 15</span>
+    <button class="nav-btn" id="nextBtn">›</button>
+  </div>
+</div>
+
+<!-- MUSIC PLAYER -->
+<iframe id="yt-frame"
+  src="https://www.youtube.com/embed/sfECRi_WiGs?enablejsapi=1&autoplay=0&loop=1&playlist=sfECRi_WiGs"
+  allow="autoplay; encrypted-media" frameborder="0">
+</iframe>
+<div class="music-player">
+  <button class="music-btn" id="playBtn">▶</button>
+  <div class="music-info">
+    <div class="music-title">Anniversary <span class="music-note" id="musicNote">🎵</span></div>
+    <div class="music-artist">Tony! Toni! Toné!</div>
+    <div class="volume-row">
+      <span>🔈</span>
+      <input type="range" class="volume-slider" id="volSlider" min="0" max="100" value="70" />
+      <span>🔊</span>
+    </div>
+    <div class="yt-status" id="ytStatus">▸ press play</div>
+  </div>
+</div>
+
+<script>
+// ── PAGE DATA ──────────────────────────────────────────────────
+const PAGE_THEMES = [
+  { title:'How We Met 🌟',        stickers:['💫','🌟','✨','🎉','💌','🥂'] },
+  { title:'Our First Date 🌹',    stickers:['🌹','🕯️','🍝','💑','🎶','💋'] },
+  { title:'Places We\'ve Been 🗺️', stickers:['🗺️','✈️','🚗','🌅','📍','🏖️'] },
+  { title:'Silly Moments 😂',     stickers:['😂','🤪','😜','🙈','💀','🎭'] },
+  { title:'Things I Love About You 💝', stickers:['💝','🥰','💖','✨','🌸','💫'] },
+  { title:'Our Favourite Foods 🍕', stickers:['🍕','🍣','🧁','☕','🍓','🍜'] },
+  { title:'Late Night Vibes 🌙',  stickers:['🌙','⭐','🌃','🎧','🛋️','💤'] },
+  { title:'Adventures Together 🏔️', stickers:['🏔️','🌿','🌊','🦋','🌻','🎒'] },
+  { title:'Movie & Music Nights 🎬', stickers:['🎬','🍿','🎵','📺','🎮','🛌'] },
+  { title:'Our Inside Jokes 😏',  stickers:['😏','🤭','👀','💀','🙊','🎪'] },
+  { title:'Sweet Memories 🍬',    stickers:['🍬','🍭','🎀','🌷','💐','🎁'] },
+  { title:'Things We Do Together 🫶', stickers:['🫶','🤝','💃','🕺','🎨','🛒'] },
+  { title:'Proud Moments 🏆',     stickers:['🏆','🥇','👏','🌠','💪','🎓'] },
+  { title:'Reasons I\'m Lucky 🍀', stickers:['🍀','🌈','💛','🌞','🕊️','🙏'] },
+  { title:'Us, Forever 💞',       stickers:['💞','💍','🌹','🕊️','💫','🥂'] },
+];
+
+// Starter cards for a brand-new scrapbook
+const seeds = [
+  [{type:'photo',cap:'💕'},{type:'note',txt:'Write your memory here...'},{type:'photo',cap:'✨'}],
+  [{type:'photo',cap:'our first date 🌹'},{type:'photo',cap:'the moment everything changed 💫'},{type:'note',txt:'What I felt that night...'}],
+  [{type:'photo',cap:'adventure awaits 🗺️'},{type:'note',txt:'Places on our bucket list...'},{type:'photo',cap:'road trip vibes 🚗'}],
+  [{type:'photo',cap:'we were so dumb 😂'},{type:'note',txt:'That time we laughed until we cried...'},{type:'photo',cap:'always goofing 🤪'}],
+  [{type:'note',txt:'1. The way you smile...\n2. How you make me feel...\n3.'},{type:'photo',cap:'you, my favourite person 💝'},{type:'note',txt:'I love you because...'}],
+  [{type:'photo',cap:'our go-to spot 🍕'},{type:'note',txt:'Our favourite order is...'},{type:'photo',cap:'cooking together 🍳'}],
+  [{type:'note',txt:'3am conversations about everything...'},{type:'photo',cap:'late nights with you 🌙'},{type:'note',txt:'My favourite thing is falling asleep next to you'}],
+  [{type:'photo',cap:'our biggest adventure 🏔️'},{type:'photo',cap:'nature + you = perfect 🌿'},{type:'note',txt:'Next adventure we want to go on...'}],
+  [{type:'photo',cap:'movie night 🍿'},{type:'note',txt:'Our top 5 movies together:\n1.\n2.\n3.'},{type:'photo',cap:'you always steal the blanket 😭'}],
+  [{type:'note',txt:'Our funniest inside joke is...'},{type:'photo',cap:'only we get this 😏'},{type:'note',txt:'Things only us two understand...'}],
+  [{type:'photo',cap:'sweetest memory 🍬'},{type:'photo',cap:'gift from the heart 🎁'},{type:'note',txt:'The day I felt truly loved...'}],
+  [{type:'photo',cap:'our thing 🫶'},{type:'note',txt:'Traditions we\'ve made together...'},{type:'photo',cap:'doing everything together'}],
+  [{type:'note',txt:'I\'m so proud of you for...'},{type:'photo',cap:'look how far we\'ve come 🏆'},{type:'note',txt:'Our biggest achievement together...'}],
+  [{type:'note',txt:'I\'m the luckiest because...'},{type:'photo',cap:'you are my rainbow 🌈'},{type:'note',txt:'Thank you for choosing me every day 🍀'}],
+  [{type:'photo',cap:'us, always and forever 💞'},{type:'note',txt:'Here\'s to 5 months and forever more...\n\nI love you.'},{type:'photo',cap:'our story continues ✨'}],
+];
+
+// ── STATE (single source of truth, gets saved + exported) ──────
+function buildDefaultState() {
+  return {
+    names: '',
+    pages: PAGE_THEMES.map((theme, i) => ({
+      title: theme.title,
+      cards: (seeds[i] || []).map(c =>
+        c.type === 'photo'
+          ? { type:'photo', img:'', caption:c.cap, date:'' }
+          : { type:'note',  text:c.txt }
+      )
+    }))
+  };
+}
+
+function loadState() {
+  // 1) An exported file carries its content here
+  if (window.__INITIAL_STATE__) return window.__INITIAL_STATE__;
+  // 2) Otherwise restore the auto-saved backup from this browser
+  try {
+    const s = localStorage.getItem('scrapbookState');
+    if (s) return JSON.parse(s);
+  } catch (e) {}
+  return null;
+}
+
+let STATE = loadState() || buildDefaultState();
+const TOTAL_PAGES = STATE.pages.length;
+let currentPage = 0;
+let activePageIndex = null; // which page the modal targets
+
+// Debounced auto-save backup (so a refresh never wipes your work mid-session)
+let saveTimer = null;
+function saveState() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem('scrapbookState', JSON.stringify(STATE)); }
+    catch (e) { /* storage full — use Save / Download to keep your work */ }
+  }, 400);
+}
+
+// ── IMAGE COMPRESSION (keeps the file small enough to share) ───
+function compressImage(file, maxDim, quality) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const im = new Image();
+      im.onload = () => {
+        let w = im.width, h = im.height;
+        if (w >= h && w > maxDim)      { h = Math.round(h * maxDim / w); w = maxDim; }
+        else if (h > w && h > maxDim)  { w = Math.round(w * maxDim / h); h = maxDim; }
+        else if (w > maxDim)           { h = Math.round(h * maxDim / w); w = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(im, 0, 0, w, h);
+        try { resolve(canvas.toDataURL('image/jpeg', quality)); }
+        catch (err) { resolve(e.target.result); } // tainted/odd format → keep original
+      };
+      im.onerror = () => resolve(e.target.result); // can't decode → keep original
+      im.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── DOM REFS ───────────────────────────────────────────────────
+const container  = document.getElementById('pagesContainer');
+const dotsWrap   = document.getElementById('pageDots');
+const namesInput = document.getElementById('namesInput');
+const modal      = document.getElementById('modal');
+
+namesInput.value = STATE.names || '';
+namesInput.addEventListener('input', () => { STATE.names = namesInput.value; saveState(); });
+
+// ── CARD BUILDERS ──────────────────────────────────────────────
+function removeCard(cardEl, cardData) {
+  if (!confirm('Remove this from the page?')) return;
+  const pageData = STATE.pages.find(p => p.cards.includes(cardData));
+  if (pageData) pageData.cards.splice(pageData.cards.indexOf(cardData), 1);
+  cardEl.remove();
+  saveState();
+}
+
+function makePhotoCard(cardData) {
+  const card = document.createElement('div');
+  card.className = 'photo-card';
+  card.innerHTML = `
+    <button class="card-del" title="remove">×</button>
+    <label class="photo-placeholder">
+      <img class="placed-img" alt="memory" />
+      <div class="upload-hint">
+        <span class="icon">📷</span>
+        <span class="hint-text">tap to add photo</span>
+      </div>
+      <input type="file" class="photo-input" accept="image/*" />
+    </label>
+    <textarea class="caption-area" placeholder="write a caption..." maxlength="120" rows="2"></textarea>
+    <input class="date-badge" placeholder="add date" maxlength="30" />
+  `;
+  const fileInput = card.querySelector('.photo-input');
+  const img       = card.querySelector('.placed-img');
+  const hint      = card.querySelector('.upload-hint');
+  const hintText  = card.querySelector('.hint-text');
+  const caption   = card.querySelector('.caption-area');
+  const dateEl    = card.querySelector('.date-badge');
+
+  // hydrate from saved data
+  if (cardData.img) { img.src = cardData.img; img.classList.add('loaded'); hint.style.display = 'none'; }
+  caption.value = cardData.caption || '';
+  dateEl.value  = cardData.date || '';
+
+  fileInput.addEventListener('change', async e => {
+    const file = e.target.files[0]; if (!file) return;
+    hintText.textContent = 'adding…';
+    const dataUrl = await compressImage(file, 1280, 0.82);
+    img.src = dataUrl; img.classList.add('loaded'); hint.style.display = 'none';
+    cardData.img = dataUrl; saveState();
+  });
+  caption.addEventListener('input', () => { cardData.caption = caption.value; saveState(); });
+  dateEl.addEventListener('input',  () => { cardData.date    = dateEl.value;  saveState(); });
+  card.querySelector('.card-del').addEventListener('click', () => removeCard(card, cardData));
+  return card;
+}
+
+function makeNoteCard(cardData) {
+  const card = document.createElement('div');
+  card.className = 'note-card';
+  card.innerHTML = `
+    <button class="card-del" title="remove">×</button>
+    <textarea class="note-text" placeholder="write anything from the heart... 💛" maxlength="500" rows="5"></textarea>
+  `;
+  const ta = card.querySelector('.note-text');
+  ta.value = cardData.text || '';
+  ta.addEventListener('input', () => { cardData.text = ta.value; saveState(); });
+  card.querySelector('.card-del').addEventListener('click', () => removeCard(card, cardData));
+  return card;
+}
+
+function addCard(pageIdx, type) {
+  const cardData = type === 'photo'
+    ? { type:'photo', img:'', caption:'', date:'' }
+    : { type:'note',  text:'' };
+  STATE.pages[pageIdx].cards.push(cardData);
+  const grid = document.getElementById('grid-' + pageIdx);
+  grid.appendChild(type === 'photo' ? makePhotoCard(cardData) : makeNoteCard(cardData));
+  saveState();
+  scrollToLastCard(pageIdx);
+}
+
+function scrollToLastCard(pageIdx) {
+  const grid = document.getElementById('grid-' + pageIdx);
+  if (grid && grid.lastElementChild) {
+    grid.lastElementChild.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+}
+
+// ── RENDER PAGES FROM STATE ────────────────────────────────────
+function render() {
+  container.innerHTML = '';
+  dotsWrap.innerHTML  = '';
+
+  STATE.pages.forEach((pageData, i) => {
+    const page = document.createElement('div');
+    page.className = 'scrap-page' + (i === 0 ? ' active' : '');
+    page.id = 'page-' + i;
+    page.innerHTML = `
+      <div class="page-title-wrap">
+        <div class="page-title-card">
+          <input class="page-title-input" maxlength="50" placeholder="page title" />
+        </div>
+      </div>
+      <div class="add-wrap">
+        <button class="add-btn" data-page="${i}">+ Add a Memory</button>
+      </div>
+      <div class="memory-grid" id="grid-${i}"></div>
+    `;
+    const titleInput = page.querySelector('.page-title-input');
+    titleInput.value = pageData.title || '';
+    titleInput.addEventListener('input', () => { pageData.title = titleInput.value; saveState(); });
+    container.appendChild(page);
+
+    const grid = page.querySelector('.memory-grid');
+    pageData.cards.forEach(cardData => {
+      grid.appendChild(cardData.type === 'photo' ? makePhotoCard(cardData) : makeNoteCard(cardData));
+    });
+
+    const dot = document.createElement('button');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.title = pageData.title;
+    dot.addEventListener('click', () => goToPage(i));
+    dotsWrap.appendChild(dot);
+  });
+
+  container.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activePageIndex = parseInt(btn.dataset.page);
+      modal.classList.add('open');
+    });
+  });
+}
+
+render();
+
+// ── NAVIGATION ─────────────────────────────────────────────────
+function goToPage(idx) {
+  document.querySelectorAll('.scrap-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+  document.getElementById('page-' + idx).classList.add('active');
+  const dots = document.querySelectorAll('.dot');
+  if (dots[idx]) dots[idx].classList.add('active');
+  currentPage = idx;
+  document.getElementById('pageLabel').textContent = `Page ${idx+1} / ${TOTAL_PAGES}`;
+  document.getElementById('prevBtn').disabled = idx === 0;
+  document.getElementById('nextBtn').disabled = idx === TOTAL_PAGES - 1;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => { if(currentPage > 0) goToPage(currentPage-1); });
+document.getElementById('nextBtn').addEventListener('click', () => { if(currentPage < TOTAL_PAGES-1) goToPage(currentPage+1); });
+goToPage(0);
+
+// Swipe support
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) {
+    if (diff > 0 && currentPage < TOTAL_PAGES-1) goToPage(currentPage+1);
+    if (diff < 0 && currentPage > 0) goToPage(currentPage-1);
+  }
+});
+
+// ── COVER → MAIN ───────────────────────────────────────────────
+document.getElementById('enterBtn').addEventListener('click', () => {
+  document.getElementById('coverPage').style.display = 'none';
+  document.getElementById('scrapbookMain').style.display = 'block';
+  startMusic();
+});
+
+function startMusic() {
+  if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+    ytPlayer.unMute();
+    ytPlayer.setVolume(parseInt(document.getElementById('volSlider').value));
+    ytPlayer.playVideo();
+  } else {
+    startMusicWhenReady = true;
+  }
+}
+
+// ── MODAL ──────────────────────────────────────────────────────
+document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
+modal.addEventListener('click', e => { if(e.target === modal) modal.classList.remove('open'); });
+document.getElementById('optPhoto').addEventListener('click', () => {
+  if (activePageIndex !== null) addCard(activePageIndex, 'photo');
+  modal.classList.remove('open');
+});
+document.getElementById('optNote').addEventListener('click', () => {
+  if (activePageIndex !== null) addCard(activePageIndex, 'note');
+  modal.classList.remove('open');
+});
+
+// ── SAVE / DOWNLOAD (bakes everything into one shareable file) ──
+function showToast(msg) {
+  const t = document.getElementById('savedToast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function buildScrapbookHtml() {
+  const clone = document.documentElement.cloneNode(true);
+  // Reopen on the cover page
+  const coverC = clone.querySelector('#coverPage'); if (coverC) coverC.style.display = '';
+  const mainC  = clone.querySelector('#scrapbookMain'); if (mainC) mainC.style.display = 'none';
+  // Let the script rebuild from the embedded data (avoid duplicate DOM)
+  const pc = clone.querySelector('#pagesContainer'); if (pc) pc.innerHTML = '';
+  const pd = clone.querySelector('#pageDots'); if (pd) pd.innerHTML = '';
+  const toast = clone.querySelector('#savedToast'); if (toast) toast.classList.remove('show');
+  // Drop runtime-injected / stale scripts
+  clone.querySelectorAll('script[src*="iframe_api"]').forEach(s => s.remove());
+  clone.querySelectorAll('script[data-state]').forEach(s => s.remove());
+  // Embed the current content
+  const stateScript = document.createElement('script');
+  stateScript.setAttribute('data-state', '');
+  stateScript.textContent =
+    'window.__INITIAL_STATE__ = ' + JSON.stringify(STATE).replace(/</g, '\\u003c') + ';';
+  clone.querySelector('head').appendChild(stateScript);
+  return '<!DOCTYPE html>\n' + clone.outerHTML;
+}
+
+async function exportScrapbook() {
+  const html = buildScrapbookHtml();
+  // 1) iPhone-friendly: native Share sheet (AirDrop / Messages / Save to Files)
+  try {
+    const file = new File([html], 'our-scrapbook.html', { type: 'text/html' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Our Scrapbook 💕' });
+      showToast('shared ✓');
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return; // user closed the share sheet
+    // otherwise fall through to a normal download
+  }
+  // 2) Fallback: download the file
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'our-scrapbook.html';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('downloaded ✓');
+}
+document.getElementById('saveBtn').addEventListener('click', exportScrapbook);
+
+// ── YOUTUBE PLAYER ─────────────────────────────────────────────
+let ytPlayer=null, isPlaying=false, startMusicWhenReady=false;
+(function(){ const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s); })();
+window.onYouTubeIframeAPIReady = function() {
+  document.getElementById('ytStatus').textContent='⏳ loading...';
+  ytPlayer = new YT.Player('yt-frame',{
+    events:{
+      onReady: e => {
+        e.target.setVolume(parseInt(document.getElementById('volSlider').value));
+        document.getElementById('ytStatus').textContent='▸ press play';
+        if (startMusicWhenReady) { e.target.unMute(); e.target.playVideo(); startMusicWhenReady=false; }
+      },
+      onStateChange: e => {
+        isPlaying = e.data===YT.PlayerState.PLAYING;
+        document.getElementById('playBtn').textContent = isPlaying?'⏸':'▶';
+        document.getElementById('musicNote').classList.toggle('playing', isPlaying);
+        document.getElementById('ytStatus').textContent = isPlaying?'♪ playing...':'▸ press play';
+        if (e.data===YT.PlayerState.ENDED) { e.target.seekTo(0); e.target.playVideo(); }
+      },
+      onError: () => { document.getElementById('ytStatus').textContent='⚠ tap to open YouTube'; }
+    }
+  });
+};
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (!ytPlayer || typeof ytPlayer.playVideo!=='function') {
+    document.getElementById('ytStatus').textContent='⏳ loading...'; return;
+  }
+  if (isPlaying) { ytPlayer.pauseVideo(); }
+  else { ytPlayer.unMute(); ytPlayer.setVolume(parseInt(document.getElementById('volSlider').value)); ytPlayer.playVideo(); }
+});
+document.getElementById('volSlider').addEventListener('input', e => {
+  if(ytPlayer && typeof ytPlayer.setVolume==='function') ytPlayer.setVolume(parseInt(e.target.value));
+});
+</script>
+</body>
+</html>
