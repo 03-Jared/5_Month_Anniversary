@@ -288,12 +288,27 @@
     .dot:hover { background:var(--rose); }
 
     @media(max-width:600px){
-      .memory-grid{columns:1;}
-      .page-dots{display:none;}
-      .music-player{bottom:5rem; right:.5rem; padding:.5rem .8rem .5rem .5rem;}
-      .save-btn{ top:.5rem; right:.5rem; padding:.5rem 1rem; font-size:1.05rem; }
-      .saved-toast{ top:3rem; right:.5rem; }
-      .card-del{ opacity:.85; }
+      /* Add extra scroll space so the bottom photos don't hide behind the UI */
+      .scrap-page { padding: 2rem 0.5rem 10rem; }
+      
+      .memory-grid { columns:1; }
+      .page-dots { display:none; }
+      
+      /* Shrink the music player and tuck it tighter into the corner */
+      .music-player { 
+        bottom: 4.5rem; 
+        right: 0.5rem; 
+        padding: 0.4rem 0.8rem;
+        transform: scale(0.85) rotate(-1deg);
+        transform-origin: bottom right;
+      }
+      
+      /* Adjust top buttons for smaller screens */
+      .save-btn { top: 0.5rem; right: 0.5rem; padding: 0.5rem 1rem; font-size: 1rem; }
+      .saved-toast { top: 3rem; right: 0.5rem; }
+      
+      /* Make the delete button slightly larger so it is easier to tap with a thumb */
+      .card-del { opacity: 0.85; width: 30px; height: 30px; font-size: 1.2rem; }
     }
   </style>
 </head>
